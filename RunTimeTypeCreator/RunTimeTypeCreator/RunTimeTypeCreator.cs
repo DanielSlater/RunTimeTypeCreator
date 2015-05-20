@@ -21,14 +21,17 @@ namespace RunTimeTypeCreator
             var csc = new CSharpCodeProvider();
             var parameters = new CompilerParameters
             {
+                //we don't want a physical executable in this case
                 GenerateExecutable = false,
+                //this is what allows it to access variables in our domain
                 GenerateInMemory = true
             };
 
-            if(assemblies != null)
-                foreach (var assembly in assemblies)
-                    parameters.ReferencedAssemblies.Add(assembly);
+            //add all the assmeblies we care about
+            foreach (var assembly in assemblies)
+                parameters.ReferencedAssemblies.Add(assembly);
 
+            //compile away, will load the class into memory
             var result = csc.CompileAssemblyFromSource(parameters, source);
 
             if (result.Errors.Count > 0)
@@ -40,8 +43,7 @@ namespace RunTimeTypeCreator
                 return null;
             }
 
-            //we compiled succesfully
-            //check for the type we want
+            //we compiled succesfully so now just use reflection to get the types we want
             var types = result.CompiledAssembly.GetTypes()
                 .Where(x => typeof(T).IsAssignableFrom(x)).ToList();
 
